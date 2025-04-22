@@ -22,7 +22,7 @@ const App = () => {
     setHistory([]);
     try {
       // Get current weather
-      const weatherRes = await axios.post('https://weatherapp.captianjack.tech/weather', { city_name: city });
+      const weatherRes = await axios.post('https://backend1.captianjack.tech/weather', { city_name: city });
       setWeather(weatherRes.data);
       
       // Get recommendations
@@ -31,11 +31,11 @@ const App = () => {
 
       // Store current weather and get last stored weather
       await axios.post('https://backend2.captianjack.tech/store_weather', weatherRes.data);
-      const lastWeatherRes = await axios.get(`https://weatherapp.captianjack.tech/weather/${city}`);
+      const lastWeatherRes = await axios.get(`https://backend1.captianjack.tech/weather/${city}`);
       setLastWeather(lastWeatherRes.data.data || null);
 
       // Get history
-      const historyRes = await axios.get(`https://weatherapp.captianjack.tech/weather/${city}`);
+      const historyRes = await axios.get(`https://backend3.captianjack.tech/weather/${city}`);
       setHistory(historyRes.data.history || []);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to fetch weather data');
