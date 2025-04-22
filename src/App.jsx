@@ -30,7 +30,7 @@ const App = () => {
       setRecommendations(recRes.data.recommendations || '');
 
       // Store current weather and get last stored weather
-      await axios.post('https://backend2.captianjack.tech/store_weather', weatherRes.data);
+      await axios.post('https://backend3.captianjack.tech/store_weather', weatherRes.data);
       const lastWeatherRes = await axios.get(`https://backend3.captianjack.tech/weather/${city}`);
       setLastWeather(lastWeatherRes.data.data || null);
 
