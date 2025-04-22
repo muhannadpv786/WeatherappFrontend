@@ -22,20 +22,20 @@ const App = () => {
     setHistory([]);
     try {
       // Get current weather
-      const weatherRes = await axios.post('http://localhost:8001/weather', { city_name: city });
+      const weatherRes = await axios.post('https://weatherapp.captianjack.tech/weather', { city_name: city });
       setWeather(weatherRes.data);
       
       // Get recommendations
-      const recRes = await axios.post('http://localhost:8002/recommendations', weatherRes.data);
+      const recRes = await axios.post('https://backend1.captianjack.tech//recommendations', weatherRes.data);
       setRecommendations(recRes.data.recommendations || '');
 
       // Store current weather and get last stored weather
-      await axios.post('http://localhost:8000/store_weather', weatherRes.data);
-      const lastWeatherRes = await axios.get(`http://localhost:8000/weather/${city}`);
+      await axios.post('https://backend2.captianjack.tech/store_weather', weatherRes.data);
+      const lastWeatherRes = await axios.get(`https://weatherapp.captianjack.tech/weather/${city}`);
       setLastWeather(lastWeatherRes.data.data || null);
 
       // Get history
-      const historyRes = await axios.get(`http://localhost:8000/weather/${city}`);
+      const historyRes = await axios.get(`https://weatherapp.captianjack.tech/weather/${city}`);
       setHistory(historyRes.data.history || []);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to fetch weather data');
