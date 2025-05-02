@@ -2,26 +2,27 @@ pipeline {
     agent any
 
     environment {
-         Git settings
+        // Git settings
         GIT_CREDENTIALS_ID = 'Git'
-        GIT_REPO_URL = '  'https://github.com/muhannadpv786/WeatherappFrontend.git'
+        GIT_REPO_URL = 'https://github.com/muhannadpv786/WeatherappFrontend.git'
         GIT_BRANCH = 'main'
 
-         AWS + EKS
+        // AWS + EKS
         REGION = 'ap-south-1'
         AWS_CREDS_ID = 'aws-secret-key'
- ns = 'weatherapp-ui'
+        ns = 'weatherapp-ui'
+        
         // ECR & EKS Deployments
         ECR_REPO_URI = '279707218273.dkr.ecr.ap-south-1.amazonaws.com/frontend'
-        CLUSTER_NAME = 'muhannad-cluster'
+        CLUSTER_NAME = 'muhannad-cluster'  // Fixed typo: CLUSTER_NAME (was CLUSTER_NAME)
         DEPLOYMENT_NAME = 'frontend'
 
-         Docker
+        // Docker
         DOCKERFILE_DIR = '.'
         IMAGE_TAG = "${BUILD_NUMBER}"
         DOCKER_IMAGE_TAG = "${ECR_REPO_URI}:${IMAGE_TAG}"
 
-         Email
+        // Email
         EMAIL_RECIPIENTS = 'amuhannadpv@gmail.com'
     }
 
@@ -49,21 +50,20 @@ pipeline {
         }
 
         stage('Trivy Scan') {
-    steps {
-        script {
-            sh "trivy image --severity HIGH,CRITICAL --output trivy-report.json ${DOCKER_IMAGE_TAG}"
-            archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+            steps {
+                script {
+                    sh "trivy image --severity HIGH,CRITICAL --output trivy-report.json ${DOCKER_IMAGE_TAG}"
+                    archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+                }
+            }
         }
-    }
-}
-
 
         stage('Configure AWS CLI') {
             steps {
-                withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDS_ID}" ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDS_ID}"]]) {
                     sh """
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
                         aws configure set default.region ${REGION}
                     """
                 }
@@ -87,7 +87,7 @@ pipeline {
 
         stage('Deploy to EKS') {
             steps {
-                withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDS_ID}" ]]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDS_ID}"]]) {
                     sh """
                         aws eks update-kubeconfig --name ${CLUSTER_NAME} --region ${REGION}
                         kubectl set image deployment/${DEPLOYMENT_NAME} ${DEPLOYMENT_NAME}=${DOCKER_IMAGE_TAG} -n ${ns}
@@ -97,36 +97,34 @@ pipeline {
         }
     }
 
-    
-post {
-    success {
-        echo "✅ Deployment successful!"
-        emailext (
-            subject: "✅ Build #${BUILD_NUMBER} SUCCESS: ${JOB_NAME}",
-            body: """<p>✅ <b>Build Success</b>: #${BUILD_NUMBER}</p>
-                     <p>Project: <b>${JOB_NAME}</b></p>
-                     <p><b>Download Trivy Report:</b> 
-                     <a href="${BUILD_URL}artifact/trivy-report.json">trivy-report.json</a></p>
-                     <p>Check full build logs: <a href="${BUILD_URL}">${BUILD_URL}</a></p>""",
-            mimeType: 'text/html',
-            to: "${EMAIL_RECIPIENTS}"
-        )
-    }
+    post {
+        success {
+            echo "✅ Deployment successful!"
+            emailext (
+                subject: "✅ Build #${BUILD_NUMBER} SUCCESS: ${JOB_NAME}",
+                body: """<p>✅ <b>Build Success</b>: #${BUILD_NUMBER}</p>
+                         <p>Project: <b>${JOB_NAME}</b></p>
+                         <p><b>Download Trivy Report:</b> 
+                         <a href="${BUILD_URL}artifact/trivy-report.json">trivy-report.json</a></p>
+                         <p>Check full build logs: <a href="${BUILD_URL}">${BUILD_URL}</a></p>""",
+                mimeType: 'text/html',
+                to: "${EMAIL_RECIPIENTS}"
+            )
+        }
 
-    failure {
-        echo "❌ Deployment failed!"
-        emailext (
-            subject: "❌ Build #${BUILD_NUMBER} FAILED: ${JOB_NAME}",
-            body: """<p>❌ <b>Build Failed</b>: #${BUILD_NUMBER}</p>
-                     <p>Project: <b>${JOB_NAME}</b></p>
-                     <p><b>Download Trivy Report:</b> 
-                     <a href="${BUILD_URL}artifact/trivy-report.json">trivy-report.json</a></p>
-                     <p>Check full build logs: <a href="${BUILD_URL}">${BUILD_URL}</a></p>""",
-            mimeType: 'text/html',
-            to: "${EMAIL_RECIPIENTS}"
-        )
-    }
-
+        failure {
+            echo "❌ Deployment failed!"
+            emailext (
+                subject: "❌ Build #${BUILD_NUMBER} FAILED: ${JOB_NAME}",
+                body: """<p>❌ <b>Build Failed</b>: #${BUILD_NUMBER}</p>
+                         <p>Project: <b>${JOB_NAME}</b></p>
+                         <p><b>Download Trivy Report:</b> 
+                         <a href="${BUILD_URL}artifact/trivy-report.json">trivy-report.json</a></p>
+                         <p>Check full build logs: <a href="${BUILD_URL}">${BUILD_URL}</a></p>""",
+                mimeType: 'text/html',
+                to: "${EMAIL_RECIPIENTS}"
+            )
+        }
 
         aborted {
             echo "⚠️ Build was cancelled!"
@@ -138,8 +136,5 @@ post {
                 to: "${EMAIL_RECIPIENTS}"
             )
         }
-
-        
-        
     }
 }
