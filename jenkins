@@ -22,7 +22,7 @@ pipeline {
         DOCKER_IMAGE_TAG = "${ECR_REPO_URI}:${IMAGE_TAG}"
 
          Email
-        EMAIL_RECIPIENTS = 'muhannadpv@gmail.com'
+        EMAIL_RECIPIENTS = 'amuhannadpv@gmail.com'
     }
 
     stages {
